@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOTO_VAL_BIORHYTHM | AIロト運勢＆バイオリズム診断</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        
+        :root {
+            --bg: #0b0f19;
+            --card: #151d30;
+            --border: #24324f;
+            --text: #f1f5f9;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.4);
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 5px 0;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.2);
+        }
+
+        .subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* セキュリティ保障 */
+        .security-badge {
+            background-color: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            color: var(--accent);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        /* フォーム */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-custom {
+            width: 100%;
+            background-color: rgba(11, 15, 25, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: var(--text);
+            font-size: 0.9rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-custom:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .btn-main {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-main:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        /* 診断結果エリア */
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            border-top: 1px dashed var(--border);
+            padding-top: 25px;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* バイオリズム */
+        .biorhythm-card {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-row {
+            margin-bottom: 15px;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .stat-label-container {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+        }
+
+        .stat-name {
+            font-weight: bold;
+        }
+
+        .stat-val {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .bar-container {
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        /* ラッキーナンバー */
+        .numbers-container {
+            margin-bottom: 20px;
+        }
+
+        .game-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 15px 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .number-balls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ball {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #3a4b6e, #1a2336);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: var(--text);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .ball.highlight {
+            background: radial-gradient(circle at 30% 30%, #4facfe, #00f2fe);
+            color: #0b0f19;
+            border-color: #00f2fe;
+        }
+
+        /* アドバイスカード */
+        .advice-card {
+            background-color: rgba(245, 158, 11, 0.03);
+            border: 1px solid rgba(245, 158, 11, 0.15);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .advice-title {
+            color: var(--warning);
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 一般ラッキー */
+        .lucky-card {
+            background-color: rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 16px;
+            padding: 18px;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .lucky-title {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>LOTO_VAL_BIORHYTHM</h1>
+            <div class="subtitle">AIロト運勢 ＆ 確率バイオリズム診断</div>
+        </header>
+
+        <div class="security-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <div>
+                <strong>完全ローカル診断（プライバシー保証）</strong><br>
+                入力された名前や生年月日などの情報は外部サーバーへ一切送信されません。お使いのPC（ブラウザ）内だけで安全に暗号化解析されます。
+            </div>
+        </div>
+
+        <!-- 入力フォーム -->
+        <div class="input-group">
+            <label class="input-label" for="userName">お名前（ニックネーム可）</label>
+            <input type="text" class="input-custom" id="userName" placeholder="例: ゼロ" value="">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label" for="userBirthday">生年月日</label>
+            <input type="date" class="input-custom" id="userBirthday" value="1990-01-01">
+        </div>
+
+        <button class="btn-main" onclick="diagnoseBiorhythm()">AI確率アライメント解析を実行</button>
+
+        <!-- 診断結果表示 -->
+        <div class="result-section" id="resultSection">
+            
+            <!-- バイオリズム -->
+            <div class="biorhythm-card">
+                <div class="stat-row">
+                    <div class="stat-label-container">
+                        <span class="stat-name">確率同調レベル (Luck Alignment)</span>
+                        <span class="stat-val" id="luckScore">0%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="luckBar"></div>
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-label-container">
+                        <span class="stat-name">直感解析力 (Intuition)</span>
+                        <span class="stat-val" id="intuitionScore">0%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="intuitionBar"></div>
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-label-container">
+                        <span class="stat-name">論理データ親和性 (Analysis)</span>
+                        <span class="stat-val" id="analysisScore">0%</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" id="analysisBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ラッキーナンバー -->
+            <div class="numbers-container">
+                <h3 style="font-size: 0.9rem; border-left: 3px solid var(--primary); padding-left: 8px; margin: 0 0 15px 0;">今日のラッキーアライメント（選定数字）</h3>
+                
+                <div class="game-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    ロト7 推奨アライメント (7選)
+                </div>
+                <div class="number-balls" id="loto7Balls"></div>
+
+                <div class="game-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    ロト6 推奨アライメント (6選)
+                </div>
+                <div class="number-balls" id="loto6Balls"></div>
+
+                <div class="game-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    ミニロト 推奨アライメント (5選)
+                </div>
+                <div class="number-balls" id="minilotoBalls"></div>
+            </div>
+
+            <!-- 回避すべきバイアス -->
+            <div class="advice-card">
+                <div class="advice-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    今日回避すべき心理バイアス (Cognitive Bias Warning)
+                </div>
+                <div id="biasAdvice">解析中...</div>
+            </div>
+
+            <!-- ラッキーアイテム -->
+            <div class="lucky-card">
+                <div class="lucky-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    データアライメントを整えるラッキーアクション
+                </div>
+                <div id="luckyAction">解析中...</div>
+            </div>
+
+            <!-- Xでのシェアボタン -->
+            <button class="btn-main" id="shareBtn" style="background: #000; color: #fff; margin-top: 20px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="shareOnX()">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                Xで診断結果をポストする
+            </button>
+
+        </div>
+
+        <footer>
+            開発・制作：ZERO | AI解析 開発チーム<br>
+            公式note: <a href="https://note.com/zero_ai_dev" target="_blank">https://note.com/zero_ai_dev</a> | 本ツールは <a href="file:///C:/Users/tk030/Desktop/一般向けWebツール第4弾_ロト運勢診断/LICENSE.txt" target="_blank">MITライセンス (無保証・自己責任)</a> の元で公開されています。
+        </footer>
+    </div>
+
+    <script>
+        // 擬似乱数ジェネレータ (シード値固定により再現性を確保)
+        class SeededRandom {
+            constructor(seed) {
+                this.m = 0x80000000; // 2**31
+                this.a = 1103515245;
+                this.c = 12345;
+                this.state = seed ? seed : Math.floor(Math.random() * (this.m - 1));
+            }
+            next() {
+                this.state = (this.a * this.state + this.c) % this.m;
+                return this.state / (this.m - 1);
+            }
+            // 指定範囲内の整数を取得
+            nextInt(min, max) {
+                return Math.floor(min + this.next() * (max - min + 1));
+            }
+            // 配列からシャッフルしてサンプリング
+            sample(array, size) {
+                const arr = [...array];
+                const result = [];
+                for (let i = 0; i < size; i++) {
+                    const idx = this.nextInt(0, arr.length - 1);
+                    result.push(arr.splice(idx, 1)[0]);
+                }
+                return result;
+            }
+        }
+
+        // 文字列から簡単なハッシュ値を生成してシード値とする
+        function getSeedFromString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return Math.abs(hash);
+        }
+
+        const biases = [
+            {
+                title: "ギャンブラーの誤謬 (Gambler's Fallacy)",
+                desc: "「ずっと出ていない数字だから、そろそろ確率的に出るはず」と思い込む罠です。確率は毎回独立しています。過去の出現率に引きずられすぎず、今日の直感を大切にしましょう。"
+            },
+            {
+                title: "利用可能性ヒューリスティック (Availability Heuristic)",
+                desc: "「最近見た数字」や「直近の当選数字」を過大評価し、選びやすくなる罠です。記憶に新しい情報だけに頼らず、全体のバランスを考慮して選択してみましょう。"
+            },
+            {
+                title: "バンドワゴン効果 (Bandwagon Effect)",
+                desc: "「他の人がみんな選んでいるから」「人気の数字だから」という理由で流されてしまう罠です。自分だけの独自のシミュレーション（アライメント）を信じましょう。"
+            },
+            {
+                title: "確認バイアス (Confirmation Bias)",
+                desc: "「自分がこうと決めた数字」を肯定する都合の良いデータばかりに目を向け、反対のデータを無視してしまう罠です。一度頭を空っぽにして、フラットな目で数字を選んでみましょう。"
+            },
+            {
+                title: "現状維持バイアス (Status Quo Bias)",
+                desc: "「いつも買っているこの組み合わせを変えたくない」と、不合理に現状の数字にこだわり続ける罠です。今日は変化を取り入れる良いタイミングかもしれません。"
+            }
+        ];
+
+        const luckyActions = [
+            "Excelで、普段使わないキーボードショートカットを1つ調べて実際に押してみる。",
+            "パソコンのデスクトップにある『不要な一時ファイル』や『スクリーンショット』を1つだけゴミ箱に入れる。",
+            "背筋を伸ばし、深呼吸を3回してから、緑茶や水を一口飲む。",
+            "キーボードの『F5』キー（画面更新）をゆっくり1回押して、頭をリフレッシュする。",
+            "自分のスマホやPCの空き容量をチェックし、不要なキャッシュを整理する。",
+            "紙とペンを用意し、ランダムな数字を無心で3つ書き出してみる。"
+        ];
+
+        let lastResult = null;
+
+        function diagnoseBiorhythm() {
+            const name = document.getElementById('userName').value.trim();
+            const birthday = document.getElementById('userBirthday').value;
+
+            if (!name) {
+                alert('お名前を入力してください。');
+                return;
+            }
+
+            // 今日（日付のみ）を取得して文字列化
+            const todayStr = new Date().toISOString().slice(0, 10);
+            
+            // シード値生成 (生年月日 + 名前 + 今日日付)
+            const seedStr = birthday + name + todayStr;
+            const seed = getSeedFromString(seedStr);
+            const rng = new SeededRandom(seed);
+
+            // スコア算出
+            const luckScore = rng.nextInt(75, 99);
+            const intuitionScore = rng.nextInt(60, 98);
+            const analysisScore = rng.nextInt(55, 95);
+
+            // 表示更新
+            document.getElementById('luckScore').innerText = `${luckScore}%`;
+            document.getElementById('luckBar').style.width = `${luckScore}%`;
+
+            document.getElementById('intuitionScore').innerText = `${intuitionScore}%`;
+            document.getElementById('intuitionBar').style.width = `${intuitionScore}%`;
+
+            document.getElementById('analysisScore').innerText = `${analysisScore}%`;
+            document.getElementById('analysisBar').style.width = `${analysisScore}%`;
+
+            // ラッキーナンバー生成 (ロト7: 1-37から7個, ロト6: 1-43から6個, ミニ: 1-31から5個)
+            const loto7Range = Array.from({length: 37}, (_, i) => i + 1);
+            const loto6Range = Array.from({length: 43}, (_, i) => i + 1);
+            const minilotoRange = Array.from({length: 31}, (_, i) => i + 1);
+
+            const loto7Nums = rng.sample(loto7Range, 7).sort((a,b) => a-b);
+            const loto6Nums = rng.sample(loto6Range, 6).sort((a,b) => a-b);
+            const minilotoNums = rng.sample(minilotoRange, 5).sort((a,b) => a-b);
+
+            displayBalls('loto7Balls', loto7Nums);
+            displayBalls('loto6Balls', loto6Nums);
+            displayBalls('minilotoBalls', minilotoNums);
+
+            // 回避すべきバイアス
+            const biasIdx = rng.nextInt(0, biases.length - 1);
+            document.getElementById('biasAdvice').innerHTML = `<strong>${biases[biasIdx].title}</strong><br>${biases[biasIdx].desc}`;
+
+            // ラッキーアクション
+            const actionIdx = rng.nextInt(0, luckyActions.length - 1);
+            document.getElementById('luckyAction').innerText = luckyActions[actionIdx];
+
+            // 共有用データを保持
+            lastResult = {
+                name: name,
+                luckScore: luckScore,
+                loto6: loto6Nums
+            };
+
+            // 結果セクション表示
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        function displayBalls(elementId, numbers) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            numbers.forEach(num => {
+                const ball = document.createElement('div');
+                ball.className = 'ball highlight';
+                ball.innerText = String(num).padStart(2, '0');
+                container.appendChild(ball);
+            });
+        }
+
+        function shareOnX() {
+            if (!lastResult) return;
+            const formattedNums = lastResult.loto6.map(n => String(n).padStart(2, '0')).join(', ');
+            const text = `【AIロト運勢＆バイオリズム診断】\n観測コード: ${lastResult.name}\n今日の確率同調レベル: ${lastResult.luckScore}%\n推奨ロト6数字: ${formattedNums}\n`;
+            const hashtags = "LOTO_VAL_BIORHYTHM,ロト予想,AI解析";
+            const url = "https://note.com/zero_ai_dev"; // ユーザーのnote
+            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${encodeURIComponent(hashtags)}`;
+            window.open(shareUrl, '_blank');
+        }
+    </script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b7f74bde365b4aa480344eac948b7e6b"}'></script><!-- End Cloudflare Web Analytics --></body>
+</html>
